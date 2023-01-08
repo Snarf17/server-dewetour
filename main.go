@@ -30,7 +30,7 @@ func main() {
 	var AllowedMethods = handlers.AllowedMethods([]string{"POST", "GET", "PATCH", "PUT", "DELETE", "OPTION", "HEAD"})
 	var AllowedOrigins = handlers.AllowedOrigins([]string{"*"})
 	
-	var PORT = os.Getenv('PORT')
+	var PORT = os.Getenv("PORT")
 	//path file
 	r.PathPrefix("/uploads").Handler(http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
 
