@@ -29,11 +29,12 @@ func main() {
 	var AllowedHeaders = handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	var AllowedMethods = handlers.AllowedMethods([]string{"POST", "GET", "PATCH", "PUT", "DELETE", "OPTION", "HEAD"})
 	var AllowedOrigins = handlers.AllowedOrigins([]string{"*"})
-
+	
+	var PORT = os.Getenv('PORT')
 	//path file
 	r.PathPrefix("/uploads").Handler(http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
 
 	fmt.Println("Server Running in localhost:9000")
-	http.ListenAndServe("localhost:9000", handlers.CORS(AllowedHeaders, AllowedMethods, AllowedOrigins)(r))
+	http.ListenAndServe(":"+PORT, handlers.CORS(AllowedHeaders, AllowedMethods, AllowedOrigins)(r))
 
 }
