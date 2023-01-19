@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	dto "dewetour/dto/result"
 	tripdto "dewetour/dto/trip"
 	"dewetour/models"
@@ -11,6 +12,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/cloudinary/cloudinary-go"
+	"github.com/cloudinary/cloudinary-go/api/uploader"
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/mux"
@@ -34,7 +37,7 @@ func (h *Tripshand) FindTrip(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 	}
 	for i, p := range trips {
-		trips[i].Image = path_file + p.Image
+		trips[i].Image = p.Image
 	}
 	w.WriteHeader(http.StatusOK)
 	response := dto.SuccessResult{Code: http.StatusOK, Data: trips}
@@ -51,7 +54,7 @@ func (h *Tripshand) GetTrip(w http.ResponseWriter, r *http.Request) {
 		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
 	}
-	trip.Image = path_file + trip.Image
+	trip.Image = trip.Image
 	w.WriteHeader(http.StatusOK)
 	response := dto.SuccessResult{Code: http.StatusOK, Data: trip}
 	json.NewEncoder(w).Encode(response)
@@ -92,7 +95,7 @@ func convertTripResponse(u models.Trip) tripdto.TripResponse {
 // 	}
 // }
 
-var path_file = "http://localhost:9000/uploads/"
+// var path_file = "http://localhost:9000/uploads/"
 
 func (h *Tripshand) CreateTrip(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-type", "application/json")
@@ -101,9 +104,18 @@ func (h *Tripshand) CreateTrip(w http.ResponseWriter, r *http.Request) {
 	userID := int(UserInfo["id"].(float64))
 
 	dataContex := r.Context().Value("dataFile")
-	filename := dataContex.(string)
+	filepath := dataContex.(string)
 
-	// request := new(tripdto.CreateTripRequest)
+	ctx := context.Background()
+	CLOUD_NAME := "dr8ts6upb"
+	API_KEY := "724231161762166"
+	API_SECRET := "eUWKbh-weqN_ErRcV5vdsYH81-s"
+
+	cld, _ := cloudinary.NewFromParams(CLOUD_NAME, API_KEY, API_SECRET)
+	resImg, err := cld.Upload.Upload(ctx, filepath, uploader.UploadParams{Folder: "fileimageDeweTour"})
+	if err != nil {
+		fmt.Println("gagal Upload Image", err.Error())
+	}
 
 	price, _ := strconv.Atoi(r.FormValue("price"))
 	day, _ := strconv.Atoi(r.FormValue("day"))
@@ -122,13 +134,13 @@ func (h *Tripshand) CreateTrip(w http.ResponseWriter, r *http.Request) {
 		Price:          price,
 		Quota:          quota,
 		Description:    r.FormValue("desc"),
-		Image:          filename,
+		Image:          resImg.SecureURL,
 		// DateTrip:       r.FormValue("edate"),
 	}
 	fmt.Println(night)
 
 	validation := validator.New()
-	err := validation.Struct(request)
+	err = validation.Struct(request)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
@@ -164,7 +176,7 @@ func (h *Tripshand) CreateTrip(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(err.Error())
 	}
 
-	trip.Image = path_file + trip.Image
+	// trip.Image = trip.Image
 	w.WriteHeader(http.StatusOK)
 	response := dto.SuccessResult{Code: http.StatusOK, Data: get}
 	json.NewEncoder(w).Encode(response)
@@ -176,10 +188,10 @@ func (h *Tripshand) UpdateTrip(w http.ResponseWriter, r *http.Request) {
 	userID := int(UserInfo["id"].(float64))
 
 	dataContex := r.Context().Value("dataFile")
-	filename := dataContex.(string)
+	filepath := dataContex.(string)
 
 	req := tripdto.UpdateTripRequest{
-		Image:  filename,
+		Image:  filepath,
 		UserID: userID,
 	}
 
@@ -238,7 +250,7 @@ func (h *Tripshand) UpdateTrip(w http.ResponseWriter, r *http.Request) {
 		trip.Image = req.Image
 	}
 
-	// result = make([]models.Trip, len(filename))
+	// result = make([]models.Trip, len(filepath))
 
 	// fmt.Println(dataContex)
 
