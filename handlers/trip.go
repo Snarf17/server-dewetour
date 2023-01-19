@@ -54,7 +54,7 @@ func (h *Tripshand) GetTrip(w http.ResponseWriter, r *http.Request) {
 		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
 	}
-	trip.Image = trip.Image
+	// trip.Image = trip.Image
 	w.WriteHeader(http.StatusOK)
 	response := dto.SuccessResult{Code: http.StatusOK, Data: trip}
 	json.NewEncoder(w).Encode(response)
@@ -121,7 +121,7 @@ func (h *Tripshand) CreateTrip(w http.ResponseWriter, r *http.Request) {
 	day, _ := strconv.Atoi(r.FormValue("day"))
 	night, _ := strconv.Atoi(r.FormValue("night"))
 	quota, _ := strconv.Atoi(r.FormValue("quota"))
-	// DateTrip, _ := strconv.Atoi(r.FormValue("date_trip"))
+	date, _ := time.Parse("2006-01-02", r.FormValue("date_trip"))
 	CountryID, _ := strconv.Atoi(r.FormValue("countryID"))
 	request := tripdto.CreateTripRequest{
 		Title:          r.FormValue("title"),
@@ -135,9 +135,9 @@ func (h *Tripshand) CreateTrip(w http.ResponseWriter, r *http.Request) {
 		Quota:          quota,
 		Description:    r.FormValue("desc"),
 		Image:          resImg.SecureURL,
-		// DateTrip:       r.FormValue("edate"),
+		DateTrip:       date,
 	}
-	fmt.Println(night)
+	// fmt.Println(night)
 
 	validation := validator.New()
 	err = validation.Struct(request)
